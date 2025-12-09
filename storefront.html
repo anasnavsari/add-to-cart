@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sanjari General Store</title>
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Poppins", sans-serif;
+    }
+
+    .navBar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.2rem 2rem;
+      background: #2f855a;
+      color: #fff;
+    }
+
+    .brandTitle {
+      font-size: 1.8rem;
+      letter-spacing: 1px;
+    }
+
+    .navBtn {
+      color: #fff;
+      margin-left: 20px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .findBox {
+      display: flex;
+      align-items: center;
+      background: #fff;
+      padding: 7px 12px;
+      border-radius: 25px;
+    }
+
+    .findBox input {
+      border: none;
+      outline: none;
+      padding-left: 6px;
+    }
+
+    #itemHolder {
+      padding: 2rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .productCard {
+      background: #f9fafb;
+      padding: 1rem;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .pImg {
+      width: 100%;
+      max-width: 160px;
+      margin-bottom: 12px;
+    }
+
+    .brandTxt {
+      color: #555;
+      margin-bottom: 4px;
+    }
+
+    .priceTxt {
+      color: #2f855a;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .cartBtn {
+      background: #2f855a;
+      color: white;
+      padding: 8px 15px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .cartBtn:hover {
+      background: #276749;
+    }
+
+    .noResult {
+      grid-column: 1 / -1;
+      text-align: center;
+      font-size: 1.1rem;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <header class="navBar">
+        <a href="storefront.html"><h2 class="brandTitle">SANJARI GENERAL STORE</h2></a>
+    <div class="findBox">
+      <i class="ri-search-line"></i>
+      <input type="search" id="lookupInput" placeholder="Search grocery items..." onkeyup="filterItems()" />
+    </div>
+    <div>
+      <a class="navBtn" href="storefront.html">Groceries</a>
+      <a class="navBtn" href="cart.html"><i class="ri-shopping-cart-line"></i></a>
+    </div>
+  </header>
+
+  <section id="itemHolder"></section>
+
+  <script>
+    var STORE_KEY_ITEMS = "sanjari_items";
+    var STORE_KEY_CART = "sanjari_cart";
+
+    (function seedGroceryItems() {
+      if (localStorage.getItem(STORE_KEY_ITEMS)) {
+        return;
+      }
+
+      var groceryCatalogue = [
+        { pic: "amul-butter.jpg", label: "Amul Butter 500g", maker: "Amul", cost: 260, uid: crypto.randomUUID() },
+        { pic: "amul-cheese.jpg", label: "Amul Processed Cheese 200g", maker: "Amul", cost: 130, uid: crypto.randomUUID() },
+        { pic: "milk-pouch.jpg", label: "Toned Milk 1L", maker: "Local Dairy", cost: 60, uid: crypto.randomUUID() },
+        { pic: "bread-loaf.jpg", label: "Fresh Brown Bread 400g", maker: "Bakers Choice", cost: 45, uid: crypto.randomUUID() },
+        { pic: "atta.jpg", label: "Aashirvaad Atta 5kg", maker: "Aashirvaad", cost: 320, uid: crypto.randomUUID() },
+        { pic: "salt.jpg", label: "Tata Salt 1kg", maker: "Tata", cost: 28, uid: crypto.randomUUID() },
+        { pic: "sugar.jpg", label: "Refined Sugar 1kg", maker: "Daily Needs", cost: 48, uid: crypto.randomUUID() },
+        { pic: "oil.jpg", label: "Sunflower Oil 1L", maker: "SunGold", cost: 165, uid: crypto.randomUUID() }
+      ];
+
+      localStorage.setItem(STORE_KEY_ITEMS, JSON.stringify(groceryCatalogue));
+    })();
+
+    function loadItems() {
+      var data = localStorage.getItem(STORE_KEY_ITEMS);
+      if (!data) {
+        return [];
+      }
+      return JSON.parse(data);
+    }
+
+    function renderItems(filterText) {
+      if (!filterText) {
+        filterText = "";
+      }
+      var wrapper = document.getElementById("itemHolder");
+      var allItems = loadItems();
+      var lowerText = filterText.toLowerCase();
+      var html = "";
+      var count = 0;
+
+      for (var i = 0; i < allItems.length; i++) {
+        var item = allItems[i];
+        if (item.label.toLowerCase().indexOf(lowerText) !== -1) {
+          count = count + 1;
+          html +=
+            '<div class="productCard">' +
+            '<img src="images/' + item.pic + '" class="pImg" alt="' + item.label + '" />' +
+            "<h3>" + item.label + "</h3>" +
+            '<p class="brandTxt">Brand: ' + item.maker + "</p>" +
+            '<p class="priceTxt">₹' + item.cost + "</p>" +
+            '<button class="cartBtn" onclick="addItemToCart(\'' + item.uid + '\')">Add to Cart</button>' +
+            "</div>";
+        }
+      }
+
+      if (count === 0) {
+        wrapper.innerHTML = '<p class="noResult">No items found. Try a different search.</p>';
+      } else {
+        wrapper.innerHTML = html;
+      }
+    }
+
+    function filterItems() {
+      var query = document.getElementById("lookupInput").value;
+      renderItems(query);
+    }
+
+    function addItemToCart(id) {
+      var allItems = loadItems();
+      var cartItemsText = localStorage.getItem(STORE_KEY_CART);
+      var cartItems;
+      if (!cartItemsText) {
+        cartItems = [];
+      } else {
+        cartItems = JSON.parse(cartItemsText);
+      }
+
+      var selected = null;
+      for (var i = 0; i < allItems.length; i++) {
+        if (allItems[i].uid === id) {
+          selected = allItems[i];
+          break;
+        }
+      }
+
+      if (!selected) {
+        return;
+      }
+
+      var found = false;
+      for (var j = 0; j < cartItems.length; j++) {
+        if (cartItems[j].uid === id) {
+          cartItems[j].qty = cartItems[j].qty + 1;
+          found = true;
+          break;
+        }
+      }
+
+      if (!found) {
+        cartItems.push({
+          uid: selected.uid,
+          pic: selected.pic,
+          label: selected.label,
+          maker: selected.maker,
+          cost: selected.cost,
+          qty: 1
+        });
+      }
+
+      localStorage.setItem(STORE_KEY_CART, JSON.stringify(cartItems));
+      alert("Item added to cart");
+    }
+
+    window.onload = function () {
+      renderItems("");
+    };
+  </script>
+</body>
+</html>

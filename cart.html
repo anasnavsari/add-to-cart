@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sanjari Cart</title>
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Poppins", sans-serif;
+    }
+
+    body {
+      background: #f3f4f6;
+      min-height: 100vh;
+    }
+
+    .navBar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.2rem 2rem;
+      background: #2f855a;
+      color: #fff;
+    }
+
+    .brandTitle {
+      font-size: 1.8rem;
+      letter-spacing: 1px;
+    }
+
+    .navBtn {
+      color: #fff;
+      margin-left: 20px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .mainWrapper {
+      max-width: 1000px;
+      margin: 1.5rem auto 2rem;
+      padding: 0 1rem;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 1rem 1.2rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      margin-bottom: 1.2rem;
+    }
+
+    .cardTitle {
+      font-size: 1.2rem;
+      margin-bottom: 0.8rem;
+      font-weight: 600;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      border: 1px solid #e5e7eb;
+      padding: 0.5rem;
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    th {
+      background: #f9fafb;
+      font-weight: 600;
+    }
+
+    .pImg {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    .qtyBox {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .qtyBtn {
+      border: none;
+      border-radius: 6px;
+      padding: 0.2rem 0.6rem;
+      cursor: pointer;
+      background: #e5e7eb;
+    }
+
+    .delBtn {
+      border: none;
+      border-radius: 8px;
+      padding: 0.3rem 0.7rem;
+      cursor: pointer;
+      background: #dc2626;
+      color: #ffffff;
+      font-size: 0.8rem;
+    }
+
+    .clearBtn {
+      border: none;
+      border-radius: 8px;
+      padding: 0.4rem 0.9rem;
+      cursor: pointer;
+      background: #4b5563;
+      color: #ffffff;
+      font-size: 0.9rem;
+      margin-top: 0.6rem;
+    }
+
+    .summaryRow {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 0.8rem;
+      font-size: 0.95rem;
+    }
+
+    .emptyRow {
+      text-align: center;
+      color: #6b7280;
+    }
+  </style>
+</head>
+<body>
+  <header class="navBar">
+    <a href="storefront.html"><h2 class="brandTitle">SANJARI GENERAL STORE</h2></a>
+    <div>
+      <a class="navBtn" href="storefront.html">Groceries</a>
+      <a class="navBtn" href="cart.html"><i class="ri-shopping-cart-line"></i></a>
+    </div>
+  </header>
+
+  <main class="mainWrapper">
+    <section class="card">
+      <h3 class="cardTitle">Your Cart (Local Storage)</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Image</th>
+            <th>Product</th>
+            <th>Brand</th>
+            <th>Price (₹)</th>
+            <th>Quantity</th>
+            <th>Total (₹)</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="cartBody"></tbody>
+      </table>
+
+      <div class="summaryRow">
+        <div>
+          Total Items: <span id="totalQty">0</span>
+        </div>
+        <div>
+          Cart Total: ₹<span id="totalPrice">0</span>
+        </div>
+      </div>
+
+      <button class="clearBtn" onclick="clearCart()">Clear Full Cart</button>
+    </section>
+  </main>
+
+  <script>
+    var STORE_KEY_CART = "sanjari_cart";
+
+    function loadCart() {
+      var data = localStorage.getItem(STORE_KEY_CART);
+      if (!data) {
+        return [];
+      }
+      return JSON.parse(data);
+    }
+
+    function saveCart(items) {
+      localStorage.setItem(STORE_KEY_CART, JSON.stringify(items));
+    }
+
+    function renderCart() {
+      var cart = loadCart();
+      var tbody = document.getElementById("cartBody");
+      var totalPrice = 0;
+      var totalQty = 0;
+
+      if (cart.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="emptyRow">Your cart is empty.</td></tr>';
+        document.getElementById("totalQty").textContent = 0;
+        document.getElementById("totalPrice").textContent = 0;
+        return;
+      }
+
+      var rows = "";
+      for (var i = 0; i < cart.length; i++) {
+        var item = cart[i];
+        var lineTotal = item.cost * item.qty;
+        totalPrice = totalPrice + lineTotal;
+        totalQty = totalQty + item.qty;
+
+        rows +=
+          "<tr>" +
+          "<td>" + (i + 1) + "</td>" +
+          '<td><img src="images/' + item.pic + '" class="pImg" alt="' + item.label + '"></td>' +
+          "<td>" + item.label + "</td>" +
+          "<td>" + item.maker + "</td>" +
+          "<td>₹" + item.cost + "</td>" +
+          '<td><div class="qtyBox">' +
+          '<button class="qtyBtn" onclick="changeQty(' + i + ', -1)">-</button>' +
+          "<span>" + item.qty + "</span>" +
+          '<button class="qtyBtn" onclick="changeQty(' + i + ', 1)">+</button>' +
+          "</div></td>" +
+          "<td>₹" + lineTotal + "</td>" +
+          '<td><button class="delBtn" onclick="removeItem(' + i + ')">Delete</button></td>' +
+          "</tr>";
+      }
+
+      tbody.innerHTML = rows;
+      document.getElementById("totalQty").textContent = totalQty;
+      document.getElementById("totalPrice").textContent = totalPrice;
+    }
+
+    function changeQty(index, change) {
+      var cart = loadCart();
+      if (!cart[index]) {
+        return;
+      }
+      cart[index].qty = cart[index].qty + change;
+      if (cart[index].qty <= 0) {
+        cart.splice(index, 1);
+      }
+      saveCart(cart);
+      renderCart();
+    }
+
+    function removeItem(index) {
+      var cart = loadCart();
+      cart.splice(index, 1);
+      saveCart(cart);
+      renderCart();
+    }
+
+    function clearCart() {
+      localStorage.removeItem(STORE_KEY_CART);
+      renderCart();
+    }
+
+    window.onload = function () {
+      renderCart();
+    };
+  </script>
+</body>
+</html>
